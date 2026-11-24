@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="theme-color" content="#3358d4">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Count Trunk</title>
+<style>
+:root{--bg:#fff3c4;--card:#ffffff;--ink:#2b2150;--mute:#6b6290;--pri:#7a3cff;--ok:#1fa35c;--bad:#e5384f;--key:#efe7ff;--bar:#ffd84a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1d1638;--card:#2a2152;--ink:#fff5d6;--mute:#b8aee6;--pri:#a98bff;--ok:#4cd58a;--bad:#ff6b80;--key:#3a2f6e;--bar:#ffd84a}}
+:root[data-theme="dark"]{--bg:#1d1638;--card:#2a2152;--ink:#fff5d6;--mute:#b8aee6;--pri:#a98bff;--ok:#4cd58a;--bad:#ff6b80;--key:#3a2f6e;--bar:#ffd84a}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Baloo 2","Trebuchet MS","Comic Sans MS",system-ui,sans-serif;min-height:100vh;display:flex;justify-content:center}
+.app{width:100%;max-width:460px;padding:12px 16px 24px;display:flex;flex-direction:column;gap:12px}
+h1{font-size:28px;margin:6px 0 0;text-align:center;line-height:1.1}
+p{margin:0}
+.center{text-align:center}
+.card{background:var(--card);border-radius:22px;padding:16px;box-shadow:0 4px 0 rgba(122,60,255,.25)}
+.top{display:flex;justify-content:space-between;align-items:center;font-weight:800;font-size:19px;gap:8px}
+.timer{font-variant-numeric:tabular-nums;padding:4px 12px;border-radius:99px;background:var(--card)}
+.timer.low{color:var(--bad);animation:pulse .6s infinite alternate}
+@keyframes pulse{to{transform:scale(1.1)}}
+.barwrap{height:16px;background:var(--card);border-radius:99px;overflow:hidden}
+.bar{height:100%;width:0;background:var(--bar);transition:width .3s}
+.stage{display:flex;flex-direction:column;align-items:center;gap:4px;min-height:190px;justify-content:center}
+.monster{font-size:84px;line-height:1;transition:transform .15s}
+.monster.yum{animation:hop .5s}
+.monster.yuck{animation:shake .45s}
+.monster.talk{animation:talk .9s infinite alternate}
+@keyframes hop{30%{transform:translateY(-26px) scale(1.15) rotate(-8deg)}60%{transform:translateY(0) scale(.95)}}
+@keyframes shake{20%{transform:translateX(-14px) rotate(-6deg)}40%{transform:translateX(14px) rotate(6deg)}60%{transform:translateX(-10px)}80%{transform:translateX(10px)}}
+@keyframes talk{to{transform:rotate(6deg) scale(1.06)}}
+.say{font-size:17px;font-weight:700;min-height:44px;text-align:center;color:var(--mute);padding:0 6px}
+.say.ok{color:var(--ok)}.say.bad{color:var(--bad)}
+.q{font-size:58px;font-weight:800;text-align:center;line-height:1}
+.ans{font-size:46px;font-weight:800;text-align:center;min-height:62px;border-bottom:4px dashed var(--pri);margin:6px 30px 0;font-variant-numeric:tabular-nums}
+.pad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+button{font:inherit;font-weight:800;cursor:pointer;border:0;border-radius:16px;color:var(--ink)}
+button:focus-visible{outline:3px solid var(--pri);outline-offset:2px}
+.k{font-size:28px;padding:12px 0;background:var(--key);box-shadow:0 3px 0 rgba(122,60,255,.3)}
+.k:active{transform:translateY(2px);box-shadow:none}
+.k.go{background:var(--ok);color:#fff}
+.k.del{background:var(--bad);color:#fff}
+.big{background:var(--pri);color:#fff;font-size:22px;padding:14px 18px;box-shadow:0 4px 0 rgba(0,0,0,.25);width:100%}
+.alt{background:var(--key);color:var(--ink);font-size:18px;padding:11px 14px;box-shadow:0 3px 0 rgba(122,60,255,.3);width:100%}
+.hide{display:none!important}
+.pk{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pk .alt{font-size:15px;padding:10px 6px}
+.row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.chip{background:var(--key);border-radius:99px;padding:4px 12px;font-weight:800}
+.small{font-size:15px;color:var(--mute)}
+.vbtn{background:var(--card);padding:6px 12px;font-size:15px;box-shadow:0 2px 0 rgba(122,60,255,.25)}
+.eq{font-size:54px;font-weight:800;text-align:center;line-height:1.05}
+.skip .chip{font-size:26px;padding:4px 14px;opacity:0;transform:scale(.4);transition:all .3s}
+.skip .chip.on{opacity:1;transform:none}
+.skip .chip.last{background:var(--ok);color:#fff}
+.groups{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
+.groups span{background:var(--key);border-radius:14px;padding:4px 8px;font-size:20px;line-height:1.2;max-width:46%;text-align:center}
+.joke{font-size:18px;font-weight:700;text-align:center;color:var(--pri);min-height:50px}
+.confetti{position:fixed;top:-30px;font-size:30px;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg)}}
+@media (prefers-reduced-motion:reduce){.monster.yum,.monster.yuck,.monster.talk,.timer.low,.confetti{animation:none}.skip .chip{transition:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="top"><span>🐘 Count Trunk</span><button class="vbtn" id="vbtn" aria-pressed="true">🔊 Voice on</button></div>
+
+<section id="start" class="card center">
+  <img src="data:image/jpeg;base64,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" alt="Count Trunk elephant" width="130" height="130" style="border-radius:28px;display:block;margin:0 auto">
+  <h1>Count Trunk</h1>
+  <p style="margin:10px 0 14px;font-size:18px">Trunky the Elephant loves times tables. First he teaches you a few, then you feed him the answers. Get one wrong? Trunky teaches it again, then tests you! At the end comes the 5 minute challenge.</p>
+  <p class="small" id="best" style="margin-bottom:12px"></p>
+  <button class="big hide" id="cont" style="margin-bottom:10px"></button>
+  <button class="big" id="go">Start learning!</button>
+  <div id="picker" style="margin-top:16px"></div>
+</section>
+
+<section id="teach" class="hide">
+  <p class="small center" id="thead"></p>
+  <div class="card stage" style="margin-top:8px;gap:8px">
+    <div class="monster" id="tmo">🐘</div>
+    <div class="eq" id="teq"></div>
+    <div class="row skip" id="tchips"></div>
+    <div class="groups" id="tgroups"></div>
+    <div class="joke" id="tjoke"></div>
+  </div>
+  <div class="row" style="margin-top:12px">
+    <button class="alt" id="tagain" style="flex:1">🔊 Say it again</button>
+    <button class="big" id="tnext" style="flex:2">Got it! ➜</button>
+  </div>
+</section>
+
+<section id="play" class="hide">
+  <div class="top"><span id="left"></span><span class="timer" id="timer">5:00</span></div>
+  <div class="barwrap" style="margin-top:10px"><div class="bar" id="bar"></div></div>
+  <div class="card stage" style="margin-top:12px">
+    <div class="monster" id="mo">🐘</div>
+    <div class="say" id="say"></div>
+    <div class="q" id="q"></div>
+    <div class="ans" id="ans"></div>
+  </div>
+  <div class="pad" id="pad" style="margin-top:12px"></div>
+</section>
+
+<section id="end" class="card center hide">
+  <div style="font-size:84px" id="endEmoji">🎉</div>
+  <h1 id="endTitle"></h1>
+  <p id="endText" style="margin:10px 0;font-size:18px"></p>
+  <div class="row" id="tricky" style="margin-bottom:14px"></div>
+  <button class="big" id="again">Go</button>
+  <button class="alt hide" id="again2" style="margin-top:10px"></button>
+</section>
+</div>
+<script>
+const RAW="2*3,1*8,4*3,11*3,6*4,4*2,3*4,1*2,6*5,10*10,1*4,3*10,2*5,11*5,6*8,9*10,10*5,3*5,10*2,7*10,4*8,12*3,7*2,11*10,11*2,6*10,7*5,2*2,4*4,5*2,1*5,9*4,8*10,6*2,12*10,9*5,4*5,6*3,1*10,2*8,8*8,3*2,8*3,7*8,11*8,2*4,9*3,12*8,5*3,7*3,12*2,8*4,10*4,8*2,1*3";
+const QS=[...new Set(RAW.split(","))].map(s=>{const[a,b]=s.split("*").map(Number);return{a,b,t:a+" × "+b,r:a*b,mn:Math.min(a,b),mx:Math.max(a,b)}})
+  .sort((x,y)=>x.mn-y.mn||x.mx-y.mx);
+const LIMIT=300,CH=6;
+const TITLES=["Warm-up Wobble","Double Trouble Bubble","Pizza Party","Spaghetti Slurp","Jelly Jungle","Banana Rocket","Burp Olympics","Pirate Pancakes","Mega Munch","Wobbly Waffles"];
+const FOODS=["🍕","🍩","🍌","🍪","🍉","🍔","🧁","🍓"];
+const YUM=["Yum! Tastes like pizza!","Nom nom nom!","Burp! Excuse me!","Delicious! More please!","Ooh, a crunchy number!","That was a juicy one!","Trunky is getting chunky!","Tastes like spaghetti!","You are a genius!","Trunky is doing a happy dance!"];
+const YUCK=["Bleurgh! Tastes like socks!","Ewww! Smelly cheese!","Pfft! Trunky spat it out!","Yuck! That one is mouldy!","Trunky needs a different flavour! Let me teach you!","Oh no! Trunky is making a funny face! Watch and learn!"];
+const GEN=["Say it three times, like a wizard casting a spell!","Trunky says: picture it on a pizza!","Wiggle your fingers while you count. It helps your brain!","Whisper it, shout it, sing it. Then it sticks!","Your brain is a muscle. Squeeze it!"];
+const $=id=>document.getElementById(id);
+const rnd=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+const clean=t=>t.replace(/[\u{1F000}-\u{1FFFF}\u2600-\u27BF\uFE0F]/gu,"").replace(/×/g," times ");
+const MOS=["🐘"];
+let voiceOn=true,voice=null;
+function pickVoice(){try{const v=speechSynthesis.getVoices();voice=v.find(x=>/en-GB/i.test(x.lang))||v.find(x=>/^en/i.test(x.lang))||null}catch(e){}}
+try{speechSynthesis.onvoiceschanged=pickVoice;pickVoice()}catch(e){}
+function say(t){if(!voiceOn)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(clean(t));if(voice)u.voice=voice;u.lang="en-GB";u.pitch=1.5;u.rate=.92;speechSynthesis.speak(u)}catch(e){}}
+$("vbtn").onclick=()=>{voiceOn=!voiceOn;$("vbtn").textContent=voiceOn?"🔊 Voice on":"🔇 Voice off";$("vbtn").setAttribute("aria-pressed",voiceOn);if(!voiceOn){try{speechSynthesis.cancel()}catch(e){}}else say("Hello! I am Trunky!")};
+
+let lessons=[],li=0,mode="",queue=[],total=0,cur=null,typed="",busy=false,timerOn=false,t0=0,paused=0,tick=null,misses={},done=0,mo="🐘",tms=[],endAct=null,end2Act=null,teaching=false;
+function show(id){["start","teach","play","end"].forEach(s=>$(s).classList.toggle("hide",s!==id))}
+function fmt(s){s=Math.max(0,Math.ceil(s));return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+function best(){let b=null;try{b=localStorage.getItem("m55best")}catch(e){}$("best").textContent=b?"Your best 5 minute challenge: "+fmt(+b)+" 🏆":QS.length+" questions to learn"}
+function later(f,ms){tms.push(setTimeout(f,ms))}
+function clearT(){tms.forEach(clearTimeout);tms=[]}
+
+function joke(q){
+  const o=q.a===q.mn?q.b:q.a;
+  if(q.mn===1)return "Times 1 is the lazy number. The answer is just "+o+". Easy peasy!";
+  if(q.mn===10||q.mx===10)return "Times 10? Stick a zero on the end! Zero hero!";
+  if(q.mx===11&&q.mn<10)return "Eleven times "+q.mn+"? Say the digit twice: "+q.mn+" and "+q.mn+"!";
+  if(q.mn===2)return "Times 2 is double trouble! Just double "+q.mx+" to get "+q.r+".";
+  if(q.mn===5||q.mx===5)return "Times 5 always ends in 0 or 5, like a wiggly snake!";
+  return rnd(GEN);
+}
+function showTeach(q,head,after){
+  clearT();teaching=true;show("teach");
+  $("thead").textContent=head;$("tmo").textContent=mo;$("tmo").classList.add("talk");
+  const vals=[];for(let i=1;i<=q.mn;i++)vals.push(q.mx*i);
+  $("teq").textContent=q.t+" = "+q.r;
+  $("tchips").innerHTML=vals.map((v,i)=>"<span class='chip"+(i===vals.length-1?" last":"")+"'>"+v+"</span>").join("");
+  $("tgroups").innerHTML=q.r<=40?Array.from({length:q.mn},()=>"<span>"+rnd(FOODS).repeat(q.mx)+"</span>").join(""):"";
+  const j=joke(q);$("tjoke").textContent=j;
+  const script=q.a+" times "+q.b+"! Count by "+q.mx+", "+q.mn+" times: "+vals.join(", ")+". So "+q.a+" times "+q.b+" equals "+q.r+"! "+j;
+  const play=()=>{say(script);clearT();[...$("tchips").children].forEach(c=>c.classList.remove("on"));
+    [...$("tchips").children].forEach((c,i)=>later(()=>c.classList.add("on"),1500+i*750));
+    later(()=>$("tmo").classList.remove("talk"),4000+vals.length*800)};
+  $("tagain").onclick=play;
+  $("tnext").onclick=()=>{clearT();teaching=false;try{speechSynthesis.cancel()}catch(e){}after()};
+  play();
+}
+function runLesson(){
+  if(li>=lessons.length){return finalIntro()}
+  mo=MOS[li%MOS.length];const L=lessons[li],title=TITLES[li%TITLES.length];
+  let i=0;
+  const step=()=>{
+    if(i>=L.length){return quiz(shuffle(L),"lesson")}
+    const q=L[i++];
+    showTeach(q,"Lesson "+(li+1)+" of "+lessons.length+": "+title+" (card "+i+" of "+L.length+")",step);
+  };
+  step();
+}
+function quiz(list,m){
+  mode=m;queue=list.slice();total=queue.length;done=0;typed="";busy=false;
+  $("mo").textContent=mo;show("play");
+  $("timer").classList.toggle("hide",m!=="final");
+  $("say").className="say";$("say").textContent=m==="final"?"Final challenge! Feed Trunky fast!":"Test time! Feed Trunky the answers!";
+  say($("say").textContent);
+  if(m==="final"){misses={};timerOn=true;paused=0;t0=Date.now();clearInterval(tick);tick=setInterval(update,250);update()}
+  next();
+}
+function elapsed(){return((paused||Date.now())-t0)/1000}
+function update(){if(!timerOn||teaching)return;const l=LIMIT-elapsed();$("timer").textContent=fmt(l);$("timer").classList.toggle("low",l<=30);if(l<=0)finishFinal(false)}
+function next(){
+  if(!queue.length){return mode==="final"?finishFinal(true):lessonDone()}
+  cur=queue[0];typed="";render();
+  $("left").textContent=(mode==="final"?"Final: ":"Lesson "+(li+1)+": ")+queue.length+" left";
+  $("bar").style.width=(100*done/total)+"%";
+  say(cur.a+" times "+cur.b+"?");
+}
+function render(){$("q").textContent=cur.t+" =";$("ans").textContent=typed||"\u00a0"}
+function press(k){
+  if(busy||!cur||$("play").classList.contains("hide"))return;
+  if(k==="del")typed=typed.slice(0,-1);
+  else if(k==="go"){submit();return}
+  else if(typed.length<3)typed+=k;
+  render();
+}
+function react(ok,line){
+  const m=$("mo");m.classList.remove("yum","yuck");void m.offsetWidth;m.classList.add(ok?"yum":"yuck");
+  $("say").textContent=line;$("say").className="say "+(ok?"ok":"bad");say(line);
+}
+function submit(){
+  if(!typed)return;
+  const ok=+typed===cur.r,q=cur;busy=true;
+  if(ok){queue.shift();done++;react(true,rnd(YUM));later(()=>{busy=false;next()},1500)}
+  else{
+    queue.shift();misses[q.t]=1;
+    const at=Math.min(queue.length,4);queue.splice(at,0,q);
+    react(false,rnd(YUCK));
+    later(()=>{
+      if(mode==="final")paused=Date.now();
+      showTeach(q,"Let’s learn "+q.t+" again!",()=>{
+        if(mode==="final"){t0+=Date.now()-paused;paused=0}
+        busy=false;show("play");next();
+      });
+    },2600);
+  }
+}
+function setEnd(emoji,title,text,btn,act,btn2,act2){
+  clearT();show("end");$("endEmoji").textContent=emoji;$("endTitle").textContent=title;$("endText").textContent=text;
+  $("again").textContent=btn;endAct=act;
+  $("again2").classList.toggle("hide",!btn2);if(btn2){$("again2").textContent=btn2;end2Act=act2}
+  const bad=Object.keys(misses);
+  $("tricky").innerHTML=mode==="final"&&bad.length?"<p class='small' style='width:100%'>Tricky ones:</p>"+bad.map(t=>"<span class='chip'>"+t+"</span>").join(""):"";
+  say(title+" "+text);
+}
+function lessonDone(){
+  cur=null;confetti(12);
+  save(Math.max(saved(),li+1));mark(li);
+  const last=li>=lessons.length-1;
+  setEnd("🌟","Lesson "+(li+1)+" cleared!",last?"You have learned them all! Now for the big 5 minute challenge!":"Trunky is full! Ready for lesson "+(li+2)+"?",last?"Final challenge!":"Next lesson ➜",()=>{li++;runLesson()});
+}
+function finalIntro(){
+  mode="intro";mo="🐘";
+  setEnd("⏱️","The 5 minute challenge!","Answer all "+QS.length+" questions before Trunky falls asleep. A wrong answer means a quick re-lesson, and the clock waits for you!","Start the clock!",startFinal);
+}
+function startFinal(){quiz(shuffle(QS),"final")}
+function finishFinal(won){
+  clearInterval(tick);timerOn=false;cur=null;busy=false;clearT();
+  const secs=Math.min(LIMIT,elapsed());
+  if(won){
+    try{const b=+localStorage.getItem("m55best");if(!b||secs<b)localStorage.setItem("m55best",String(Math.round(secs)))}catch(e){}
+    confetti(30);mode="final";
+    setEnd("🏆","Trunky is stuffed! You did it!","All "+QS.length+" answers in "+fmt(secs)+". Can you beat your time?","Play the challenge again",startFinal);
+  }else{
+    mode="final";const bad=Object.keys(misses);
+    const fix=QS.filter(q=>misses[q.t]);
+    setEnd("😴","Trunky fell asleep!","Time is up with "+queue.length+" still to go. Have another go!","Try the challenge again",startFinal,
+      fix.length?"Learn the tricky ones first":"",()=>{lessons=[fix.concat(shuffle(QS.filter(q=>!misses[q.t])).slice(0,Math.max(0,CH-fix.length))).slice(0,Math.max(CH,fix.length))];li=0;runLesson2()});
+  }
+}
+function runLesson2(){
+  // one extra lesson of the tricky ones, then straight to the final
+  const L=lessons[0];let i=0;mo="🐘";
+  const step=()=>{if(i>=L.length)return quiz(shuffle(L),"lesson2");const q=L[i++];showTeach(q,"Tricky ones: card "+i+" of "+L.length,step)};
+  step();
+}
+function confetti(n){
+  const e=["🎉","⭐","🍕","🍩","🎈","🍦"];
+  for(let i=0;i<n;i++){const s=document.createElement("span");s.className="confetti";s.textContent=rnd(e);
+    s.style.left=Math.random()*95+"vw";s.style.animationDuration=(2+Math.random()*2.5)+"s";s.style.animationDelay=Math.random()*.8+"s";
+    document.body.appendChild(s);setTimeout(()=>s.remove(),5500)}
+}
+// lesson2 finishing goes to the final challenge
+const _ld=lessonDone;
+lessonDone=function(){
+  if(mode==="lesson2"){cur=null;confetti(12);setEnd("🌟","Tricky ones tamed!","Now back to the 5 minute challenge!","Start the clock!",startFinal);return}
+  _ld();
+};
+const pad=$("pad");
+["1","2","3","4","5","6","7","8","9","del","0","go"].forEach(k=>{
+  const b=document.createElement("button");b.className="k"+(k==="go"?" go":k==="del"?" del":"");
+  b.textContent=k==="go"?"Feed!":k==="del"?"⌫":k;b.setAttribute("aria-label",k==="go"?"Feed":k==="del"?"Delete":k);
+  b.onclick=()=>press(k);pad.appendChild(b);
+});
+document.addEventListener("keydown",e=>{
+  if(/^[0-9]$/.test(e.key))press(e.key);
+  else if(e.key==="Backspace")press("del");
+  else if(e.key==="Enter")press("go");
+});
+function build(){lessons=[];for(let i=0;i<QS.length;i+=CH)lessons.push(QS.slice(i,i+CH));if(lessons.length>1&&lessons[lessons.length-1].length<3)lessons[lessons.length-2]=lessons[lessons.length-2].concat(lessons.pop());}
+function doneSet(){try{return JSON.parse(localStorage.getItem("m55done")||"[]")}catch(e){return[]}}
+function mark(i){const d=doneSet();if(!d.includes(i)){d.push(i);try{localStorage.setItem("m55done",JSON.stringify(d))}catch(e){}}}
+function renderPicker(){const d=doneSet(),p=$("picker");p.innerHTML="<p class='small center' style='margin-bottom:8px'>Or pick any lesson:</p>";const g=document.createElement("div");g.className="pk";lessons.forEach((L,i)=>{const b=document.createElement("button");b.className="alt";b.textContent=(d.includes(i)?"✅ ":"")+(i+1)+". "+TITLES[i%TITLES.length];b.onclick=()=>{li=i;say("Let us learn!");setTimeout(runLesson,800)};g.appendChild(b)});const c=document.createElement("button");c.className="alt";c.style.gridColumn="1/-1";c.textContent="⏱️ 5 minute challenge";c.onclick=()=>{mo="🐘";startFinal()};g.appendChild(c);p.appendChild(g)}
+function save(n){try{localStorage.setItem("m55li",String(n))}catch(e){}}
+function saved(){try{return +localStorage.getItem("m55li")||0}catch(e){return 0}}
+function showCont(){const n=saved();build();renderPicker();$("cont").classList.toggle("hide",!n);if(n){$("cont").textContent=n>=lessons.length?"▶ Go to the 5 minute challenge":"▶ Continue from lesson "+(n+1)+" of "+lessons.length;$("go").textContent="Start again from lesson 1";$("go").className="alt"}}
+$("go").onclick=()=>{build();li=0;save(0);say("Hello! I am Trunky the elephant! Let us learn some times tables!");setTimeout(runLesson,1800)};
+$("cont").onclick=()=>{build();li=Math.min(saved(),lessons.length);say("Welcome back! Let us carry on!");setTimeout(runLesson,1500)};
+$("again").onclick=()=>endAct&&endAct();
+$("again2").onclick=()=>end2Act&&end2Act();
+best();showCont();
+if("serviceWorker" in navigator){try{navigator.serviceWorker.register("sw.js").catch(()=>{})}catch(e){}}
+</script>
+</body>
+</html>
