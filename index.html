@@ -192,6 +192,8 @@ body::after{background:radial-gradient(circle,rgba(255,138,31,.5),transparent 70
   <p style="margin:6px 0 16px;font-size:18px">What shall we learn today?</p>
   <button class="big" id="hMul">✖️ Times tables<small>🏅 Maths 55 Club</small></button>
   <button class="big" id="hSub" style="margin-top:12px;background:linear-gradient(135deg,#14b8a6,#2a8cf0);box-shadow:0 14px 28px -8px rgba(20,184,166,.6)">➖ Subtraction<small>0 to 100 · 19 lessons</small></button>
+  <button class="alt" id="vtest" style="margin-top:14px">🔊 Test Trunky’s voice</button>
+  <p class="small" id="vmsg" style="margin-top:8px"></p>
 </section>
 
 <section id="subhome" class="card center hide">
@@ -275,9 +277,9 @@ const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(M
 const clean=t=>t.replace(/[\u{1F000}-\u{1FFFF}\u2600-\u27BF\uFE0F]/gu,"").replace(/×/g," times ").replace(/−/g," minus ");
 const MOS=["🐘"];
 let voiceOn=true,voice=null;
-function pickVoice(){try{const v=speechSynthesis.getVoices();voice=v.find(x=>/en-GB/i.test(x.lang))||v.find(x=>/^en/i.test(x.lang))||null}catch(e){}}
+function pickVoice(){try{const v=speechSynthesis.getVoices().filter(x=>/^en/i.test(x.lang)&&!/Albert|Bad News|Bahh|Bells|Boing|Bubbles|Cellos|Good News|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox|Fred|Junior|Ralph|Kathy/i.test(x.name));voice=v.find(x=>/en-GB/i.test(x.lang)&&x.localService)||v.find(x=>/en-(GB|AU|IE)/i.test(x.lang))||v.find(x=>x.localService)||v[0]||null}catch(e){}}
 try{speechSynthesis.onvoiceschanged=pickVoice;pickVoice()}catch(e){}
-function say(t){if(!voiceOn)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(clean(t));if(voice)u.voice=voice;u.lang="en-GB";u.pitch=1.5;u.rate=.92;speechSynthesis.speak(u)}catch(e){}}
+function say(t){if(!voiceOn)return;try{const ss=window.speechSynthesis;if(!ss)return;const u=new SpeechSynthesisUtterance(clean(t));if(voice){u.voice=voice;u.lang=voice.lang}u.pitch=1.4;u.rate=.92;u.volume=1;if(ss.speaking||ss.pending){ss.cancel();setTimeout(()=>{try{ss.resume();ss.speak(u)}catch(e){}},90)}else{ss.resume();ss.speak(u)}}catch(e){}}
 $("vbtn").onclick=()=>{voiceOn=!voiceOn;$("vbtn").textContent=voiceOn?"🔊 Voice on":"🔇 Voice off";$("vbtn").setAttribute("aria-pressed",voiceOn);if(!voiceOn){try{speechSynthesis.cancel()}catch(e){}}else say("Hello! I am Trunky!")};
 
 let lessons=[],li=0,mode="",queue=[],total=0,cur=null,typed="",busy=false,timerOn=false,t0=0,paused=0,tick=null,misses={},done=0,mo="🐘",tms=[],endAct=null,end2Act=null,teaching=false;
@@ -519,6 +521,16 @@ function goHome(){
   showCont();renderSubHome();show("home");
 }
 $("homeBtn").onclick=goHome;$("menuBtn").onclick=goHome;
+document.addEventListener("pointerdown",()=>{try{const u=new SpeechSynthesisUtterance(" ");u.volume=0;speechSynthesis.speak(u)}catch(e){}},{once:true});
+const NOV="No sound? Turn up the media volume, switch off silent mode, and open the app in Chrome. On Android, check that Speech Services by Google is installed in Settings. The app still works without the voice!";
+$("vtest").onclick=()=>{
+  voiceOn=true;$("vbtn").textContent="🔊 Voice on";$("vmsg").textContent="";let ok=false;
+  try{const ss=speechSynthesis;ss.cancel();const u=new SpeechSynthesisUtterance("Hello! I am Trunky the elephant! Can you hear me?");
+    if(voice){u.voice=voice;u.lang=voice.lang}u.pitch=1.4;u.rate=.92;
+    u.onstart=()=>{ok=true;$("vmsg").textContent="The voice is working! If you can’t hear it, turn up the media volume."};
+    u.onerror=()=>{$("vmsg").textContent=NOV};ss.speak(u)}catch(e){$("vmsg").textContent=NOV}
+  setTimeout(()=>{if(!ok&&!$("vmsg").textContent)$("vmsg").textContent=NOV},2500);
+};
 $("subBack").onclick=goHome;
 function renderClubs(){
   const g=$("clubgrid");g.innerHTML="";
